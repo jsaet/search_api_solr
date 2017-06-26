@@ -302,6 +302,8 @@ class SearchApiSolrTest extends BackendTestBase {
   public function testQueryConditions() {
     /** @var \Drupal\search_api_solr\SolrBackendInterface $backend */
     $backend = Server::load($this->serverId)->getBackend();
+    $connector = $backend->getSolrConnector();
+    $solr_version = $connector->getSolrVersion();
     list($fields, $mapping) = $this->getFieldsAndMapping($backend);
     $options = [];
 
@@ -366,7 +368,12 @@ class SearchApiSolrTest extends BackendTestBase {
     $condition_group->addConditionGroup($inner_condition_group);
     $query->addConditionGroup($condition_group);
     $fq = $this->invokeMethod($backend, 'getFilterQueries', [$query, $mapping, $fields, &$options]);
-    $this->assertEquals('(-solr_x:"5" +(solr_y:"3" (*:* NOT solr_z:*)))', $fq[0]['query']);
+    if (version_compare($solr_version, '5', '<')) {
+      $this->assertEquals('(-solr_x:"5" +(solr_y:"3" (*:* NOT solr_z:*)))', $fq[0]['query']);
+    }
+    else {
+      $this->assertEquals('(-solr_x:"5" +(solr_y:"3" -solr_z:[* TO *]))', $fq[0]['query']);
+    }
     $this->assertFalse(isset($fq[1]));
 
     $query = $this->buildSearch();
