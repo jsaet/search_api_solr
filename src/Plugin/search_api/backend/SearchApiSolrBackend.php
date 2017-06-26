@@ -1801,7 +1801,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
       case '=':
       default:
         if (is_null($value)) {
-          return "-$field:[* TO *]";
+          return "(*:* NOT $field:*)";
         }
         else {
           return "$field:$value";

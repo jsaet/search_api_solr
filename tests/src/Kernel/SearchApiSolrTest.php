@@ -355,6 +355,20 @@ class SearchApiSolrTest extends BackendTestBase {
     $this->assertEquals('(-solr_x:"5" +(solr_y:"3" solr_z:"7"))', $fq[0]['query']);
     $this->assertFalse(isset($fq[1]));
 
+    // Condition groups with null value queries are special snowflakes.
+    // @see https://www.drupal.org/node/2888629
+    $query = $this->buildSearch();
+    $condition_group = $query->createConditionGroup();
+    $inner_condition_group = $query->createConditionGroup('OR');
+    $condition_group->addCondition('x', 5, '<>');
+    $inner_condition_group->addCondition('y', 3);
+    $inner_condition_group->addCondition('z', NULL);
+    $condition_group->addConditionGroup($inner_condition_group);
+    $query->addConditionGroup($condition_group);
+    $fq = $this->invokeMethod($backend, 'getFilterQueries', [$query, $mapping, $fields, &$options]);
+    $this->assertEquals('(-solr_x:"5" +(solr_y:"3" (*:* NOT solr_z:*)))', $fq[0]['query']);
+    $this->assertFalse(isset($fq[1]));
+
     $query = $this->buildSearch();
     $condition_group = $query->createConditionGroup();
     $inner_condition_group_or = $query->createConditionGroup('OR');
