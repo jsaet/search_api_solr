@@ -1742,6 +1742,9 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
       }
     }
 
+    $connector = $this->getSolrConnector();
+    $solr_version = $connector->getSolrVersion();
+
     switch ($operator) {
       case '<>':
         if (is_null($value)) {
@@ -1781,7 +1784,13 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
           }
         }
         if ($null) {
-          $parts[] = "(-$field:[* TO *])";
+          if (version_compare($solr_version, '5', '<')) {
+            // @see https://stackoverflow.com/questions/4238609/how-to-query-solr-for-empty-fields/28859224#28859224
+            return "(*:* NOT $field:*)";
+          }
+          else {
+            $parts[] = "(-$field:[* TO *])";
+          }
         }
         return '(' . implode(" ", $parts) . ')';
 
@@ -1801,7 +1810,13 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
       case '=':
       default:
         if (is_null($value)) {
-          return "(*:* NOT $field:*)";
+          if (version_compare($solr_version, '5', '<')) {
+            // @see https://stackoverflow.com/questions/4238609/how-to-query-solr-for-empty-fields/28859224#28859224
+            return "(*:* NOT $field:*)";
+          }
+          else {
+            return "-$field:[* TO *]";
+          }
         }
         else {
           return "$field:$value";
