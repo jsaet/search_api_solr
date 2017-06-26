@@ -372,7 +372,7 @@ class SearchApiSolrTest extends BackendTestBase {
       $this->assertEquals('(-solr_x:"5" +(solr_y:"3" (*:* NOT solr_z:*)))', $fq[0]['query']);
     }
     else {
-      $this->assertEquals('(-solr_x:"5" +(solr_y:"3" -solr_z:[* TO *]))', $fq[0]['query']);
+      $this->assertEquals('(-solr_x:"5" +(solr_y:"3" (-solr_z:[* TO *])))', $fq[0]['query']);
     }
     $this->assertFalse(isset($fq[1]));
 
