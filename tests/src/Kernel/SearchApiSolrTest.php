@@ -146,6 +146,14 @@ class SearchApiSolrTest extends BackendTestBase {
   /**
    * {@inheritdoc}
    */
+  protected function regressionTests() {
+    parent::regressionTests();
+    $this->regressionTest2888629();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function indexItems($index_id) {
     $index_status = parent::indexItems($index_id);
     sleep($this->waitForCommit);
@@ -219,6 +227,36 @@ class SearchApiSolrTest extends BackendTestBase {
     $facets = $results->getExtraData('search_api_facets', array())['body'];
     usort($facets, array($this, 'facetCompare'));
     $this->assertEquals($expected, $facets, 'Correct facets were returned for a fulltext field.');
+  }
+
+  /**
+   * Regression tests for #2888629.
+   */
+  protected function regressionTest2888629() {
+    $query = $this->buildSearch();
+    $conditions = $query->createConditionGroup('OR');
+    $conditions->addCondition('category', 'article_category', '<>');
+    $conditions->addCondition('category', NULL);
+    $query->addConditionGroup($conditions);
+    $results = $query->execute();
+    $this->assertResults([1, 2, 3], $results, 'OR group comparing against NULL');
+
+    $query = $this->buildSearch();
+    $conditions = $query->createConditionGroup('OR');
+    $conditions->addCondition('body', NULL, '<>');
+    $conditions->addCondition('category', NULL);
+    $query->addConditionGroup($conditions);
+    $results = $query->execute();
+    $this->assertResults([3], $results, 'OR group comparing against NULL');
+
+    $query = $this->buildSearch();
+    $conditions = $query->createConditionGroup('OR');
+    $conditions->addCondition('body', NULL, '<>');
+    $conditions->addCondition('category', 'article_category', '<>');
+    $conditions->addCondition('category', NULL);
+    $query->addConditionGroup($conditions);
+    $results = $query->execute();
+    $this->assertResults([1, 2, 3], $results, 'OR group comparing against NULL');
   }
 
   /**
