@@ -91,15 +91,24 @@ class SearchApiSolrLocationTest extends BackendTestBase {
     /** @var \Drupal\search_api\Entity\Index $index */
     $index = Index::load($this->indexId);
 
-    $info = [
+    $location_info = [
       'datasource_id' => 'entity:entity_test_mulrev_changed',
       'property_path' => 'location',
       'type' => 'location',
     ];
-
+    $rpt_info = [
+      'datasource_id' => 'entity:entity_test_mulrev_changed',
+      'property_path' => 'location',
+      'type' => 'rpt',
+    ];
     $fieldsHelper = $this->container->get('search_api.fields_helper');
 
-    $index->addField($fieldsHelper->createField($index, 'location', $info));
+    // Index location coordinates as location data type.
+    $index->addField($fieldsHelper->createField($index, 'location', $location_info));
+
+    // Index location coordinates as rpt data type.
+    $index->addField($fieldsHelper->createField($index, 'rpt', $rpt_info));
+
     $index->save();
 
     /** @var \Drupal\search_api\Entity\Server $server */
@@ -269,7 +278,7 @@ class SearchApiSolrLocationTest extends BackendTestBase {
     ];
 
     $query = $this->buildSearch(NULL, [], NULL, FALSE)
-      ->addCondition('location',['100', '1000'], 'BETWEEN')
+      ->addCondition('location', ['100', '1000'], 'BETWEEN')
       ->sort('location__distance');
 
     $query->setOption('search_api_location', $location_options);
@@ -286,6 +295,100 @@ class SearchApiSolrLocationTest extends BackendTestBase {
     ];
 
     $this->assertEquals($expected, $facets, 'The correct location facets are returned');
+
+    // Tests the RPT data type of SearchApiSolrBackend.
+    $query = $this->buildSearch(NULL, [], NULL, FALSE);
+    $options = &$query->getOptions();
+    $options['search_api_facets']['rpt'] = [
+      'field' => 'rpt',
+      'limit' => 3,
+      'operator' => 'and',
+      'min_count' => 1,
+      'missing' => FALSE,
+    ];
+    $options['search_api_rpt']['rpt'] = [
+      'field' => 'rpt',
+      'geom' => '["-180 -90" TO "180 90"]',
+      'gridLevel' => '2',
+      'maxCells' => '35554432',
+      'distErrPct' => '',
+      'distErr' => '',
+      'format' => 'ints2D',
+    ];
+    $result = $query->execute();
+    $facets = $result->getExtraData('search_api_facets', [])['rpt'];
+    $expected = [
+      [
+        'filter' => [
+          "gridLevel",
+          2,
+          "columns",
+          32,
+          "rows",
+          32,
+          "minX",
+          -180.0,
+          "maxX",
+          180.0,
+          "minY",
+          -90.0,
+          "maxY",
+          90.0,
+          "counts_ints2D",
+          [NULL, NULL, NULL, NULL, NULL, NULL, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], NULL, [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL],
+        ],
+        'count' => 1,
+      ],
+    ];
+
+    $this->assertEquals($expected, $facets, 'The correct location facets are returned');
+
+    $query = $this->buildSearch(NULL, [], NULL, FALSE);
+    $options = &$query->getOptions();
+    $options['search_api_facets']['rpt'] = [
+      'field' => 'rpt',
+      'limit' => 4,
+      'operator' => 'or',
+      'min_count' => 2,
+      'missing' => FALSE,
+    ];
+    $options['search_api_rpt']['rpt'] = [
+      'field' => 'rpt',
+      'geom' => '["-175 -85" TO "170 80"]',
+      'gridLevel' => '3',
+      'maxCells' => '35554432',
+      'distErrPct' => '',
+      'distErr' => '',
+      'format' => 'ints2D',
+    ];
+    $result = $query->execute();
+    $facets = $result->getExtraData('search_api_facets', [])['rpt'];
+    $expected = [
+      [
+        'filter' => [
+          "gridLevel",
+          3,
+          "columns",
+          246,
+          "rows",
+          118,
+          "minX",
+          -175.78125,
+          "maxX",
+          170.15625,
+          "minY",
+          -85.78125,
+          "maxY",
+          80.15625,
+          "counts_ints2D",
+          [NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], NULL, NULL, NULL, NULL, NULL, NULL, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL],
+        ],
+        'count' => 1,
+      ],
+    ];
+
+    $this->assertEquals($expected, $facets, 'The correct location facets are returned');
+
   }
 
   /**
