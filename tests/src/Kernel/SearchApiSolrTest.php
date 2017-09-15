@@ -874,4 +874,23 @@ class SearchApiSolrTest extends BackendTestBase {
     $this->assertContains('The extraction seems working!', $content);
   }
 
+  /**
+   * Tests ngram search result.
+   */
+  public function testNgramResult() {
+    // Only run the tests if we have a Solr core available.
+    if ($this->solrAvailable) {
+      $this->insertExampleContent();
+      $this->indexItems($this->indexId);
+
+      // Type text.
+      $results = $this->buildSearch(['cas'], [], ['body_ngram'])
+        ->execute();
+      $this->assertResults([1, 2, 3], $results, 'Ngram text "cas".');
+    }
+    else {
+      $this->assertTrue(TRUE, 'Error: The Solr instance could not be found. Please enable a multi-core one on http://localhost:8983/solr/d8');
+    }
+  }
+
 }
