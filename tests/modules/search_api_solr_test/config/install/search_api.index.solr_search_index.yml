@@ -29,16 +29,6 @@ field_settings:
     type: text
     datasource_id: 'entity:entity_test_mulrev_changed'
     property_path: body
-  body_ngram:
-    label: Body Ngram
-    type: solr_text_ngram
-    datasource_id: 'entity:entity_test_mulrev_changed'
-    property_path: body
-  body_ngram_string:
-    label: Body Ngram String
-    type: solr_string_ngram
-    datasource_id: 'entity:entity_test_mulrev_changed'
-    property_path: body
   type:
     label: Type
     type: string
@@ -52,6 +42,16 @@ field_settings:
   category:
     label: Category
     type: string
+    datasource_id: 'entity:entity_test_mulrev_changed'
+    property_path: category
+  category_ngram:
+    label: Category Ngram
+    type: solr_text_ngram
+    datasource_id: 'entity:entity_test_mulrev_changed'
+    property_path: category
+  category_ngram_string:
+    label: Category Ngram String
+    type: solr_string_ngram
     datasource_id: 'entity:entity_test_mulrev_changed'
     property_path: category
   width:
