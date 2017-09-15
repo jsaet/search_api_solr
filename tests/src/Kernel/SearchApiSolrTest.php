@@ -913,7 +913,7 @@ class SearchApiSolrTest extends BackendTestBase {
       $results = $this->buildSearch([], [], [])
         ->addCondition('category_ngram_string', 'Dog')
         ->execute();
-      $this->assertResults([], $results, 'Ngram string "Dog".');
+      $this->assertResults([1], $results, 'Ngram string "Dog".');
     }
     else {
       $this->assertTrue(TRUE, 'Error: The Solr instance could not be found. Please enable a multi-core one on http://localhost:8983/solr/d8');
