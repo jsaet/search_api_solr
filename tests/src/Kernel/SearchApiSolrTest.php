@@ -883,10 +883,19 @@ class SearchApiSolrTest extends BackendTestBase {
       $this->insertExampleContent();
       $this->indexItems($this->indexId);
 
-      // Type text.
       $results = $this->buildSearch(['cas'], [], ['body_ngram'])
         ->execute();
       $this->assertResults([1, 2, 3], $results, 'Ngram text "cas".');
+
+      $results = $this->buildSearch([], [], [])
+        ->addCondition('body_ngram_string', 'cas')
+        ->execute();
+      $this->assertResults([], $results, 'Ngram string "cas".');
+
+      $results = $this->buildSearch([], [], [])
+        ->addCondition('body_ngram_string', 'Tes')
+        ->execute();
+      $this->assertResults([1, 3, 4], $results, 'Ngram string "Tes".');
     }
     else {
       $this->assertTrue(TRUE, 'Error: The Solr instance could not be found. Please enable a multi-core one on http://localhost:8983/solr/d8');

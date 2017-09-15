@@ -29,9 +29,14 @@ field_settings:
     type: text
     datasource_id: 'entity:entity_test_mulrev_changed'
     property_path: body
-  body:
-    label: Body
+  body_ngram:
+    label: Body Ngram
     type: solr_text_ngram
+    datasource_id: 'entity:entity_test_mulrev_changed'
+    property_path: body
+  body_ngram_string:
+    label: Body Ngram String
+    type: solr_string_ngram
     datasource_id: 'entity:entity_test_mulrev_changed'
     property_path: body
   type:
