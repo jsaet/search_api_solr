@@ -76,11 +76,25 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
   protected $field_type;
 
   /**
+   * The cutom code targeted by this Solr Field Type.
+   *
+   * @var string
+   */
+  protected $field_type_custom_code;
+
+  /**
    * The language targeted by this Solr Field Type.
    *
    * @var string
    */
   protected $field_type_language_code;
+
+  /**
+   * The dynamic field prefixes.
+   *
+   * @var string[]
+   */
+  protected $dynamic_field_prefixes;
 
   /**
    * The targeted content domains.
@@ -113,6 +127,13 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
   /**
    * {@inheritdoc}
    */
+  public function getFieldTypeCustomCode() {
+    return $this->field_type_custom_code;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getFieldTypeLanguageCode() {
     return $this->field_type_language_code;
   }
@@ -122,6 +143,13 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
    */
   public function getDomains() {
     return empty($this->domains) ? ['generic'] : $this->domains;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDynamicFieldPrefixes() {
+    return $this->dynamic_field_prefixes;
   }
 
   /**
@@ -138,6 +166,23 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
     }
     sort($domains);
     return array_unique($domains);
+  }
+
+  /**
+   * Get all available custom codes.
+   *
+   * @return array
+   */
+  public static function getAvailableCustomCodes() {
+    $custom_codes = [];
+    $config_factory = \Drupal::configFactory();
+    foreach ($config_factory->listAll('search_api_solr.solr_field_type.') as $field_type_name) {
+      $config = $config_factory->get($field_type_name);
+      if ($custom_code = $config->get('field_type_custom_code')) {
+        $custom_codes[$custom_code] = trim($config->get('dynamic_field_prefixes')[0], 'sm');
+      }
+    }
+    return $custom_codes;
   }
 
   /**
@@ -285,10 +330,13 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
    */
   public function getDynamicFields() {
     $dynamic_fields = [];
-    foreach (array('ts', 'tm', 'tos', 'tom') as $prefix) {
-      $dynamic_fields[] = [
+    foreach ($this->dynamic_field_prefixes as $prefix) {
+      $dynamic_fields[] = $dynamic_field = [
         'name' => SearchApiSolrUtility::encodeSolrName(
-            Utility::getLanguageSpecificSolrDynamicFieldPrefix($prefix, $this->field_type_language_code)
+            Utility::getLanguageSpecificSolrDynamicFieldPrefix(
+              Utility::getCustomCodeSpecificSolrDynamicFieldPrefix($prefix, $this->field_type_custom_code),
+              $this->field_type_language_code
+            )
         ) . '*',
         'type' => $this->field_type['name'],
         'stored' => TRUE,
@@ -297,6 +345,13 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
         'termVectors' => strpos($prefix, 't') === 0,
         'omitNorms' => strpos($prefix, 'o') === 1,
       ];
+      if ($this->field_type_custom_code && 'und' == $this->field_type_language_code) {
+        // Add a language-unspecific default dynamic field for that custom code.
+        $dynamic_field['name'] = SearchApiSolrUtility::encodeSolrName(
+            Utility::getCustomCodeSpecificSolrDynamicFieldPrefix($prefix, $this->field_type_custom_code)
+          ) . '*';
+        $dynamic_fields[] = $dynamic_field;
+      }
     }
     return $dynamic_fields;
   }

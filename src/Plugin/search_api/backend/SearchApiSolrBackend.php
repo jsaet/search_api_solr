@@ -35,6 +35,7 @@ use Drupal\search_api\Utility\FieldsHelperInterface;
 use Drupal\search_api\Utility\Utility as SearchApiUtility;
 use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Suggestion\SuggestionFactory;
+use Drupal\search_api_solr\Entity\SolrFieldType;
 use Drupal\search_api_solr\SearchApiSolrException;
 use Drupal\search_api_solr\SolrBackendInterface;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginManager;
@@ -169,6 +170,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
       'suggest_suffix' => TRUE,
       'suggest_corrections' => TRUE,
       'suggest_words' => FALSE,
+      'domain' => 'generic',
       // Set the default for new servers to NULL to force "safe" un-selected
       // radios. @see https://www.drupal.org/node/2820244
       'connector' => NULL,
@@ -241,6 +243,15 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
     // (Actually, internally it doesn't really matter. However, from a user's
     // perspective, having to check both probably makes sense.)
     $form['advanced']['highlight_data']['#states']['invisible'][':input[name="backend_config[advanced][retrieve_data]"]']['checked'] = FALSE;
+
+    $domains = SolrFieldType::getAvailableDomains();
+    $form['advanced']['domain'] = array(
+      '#type' => 'select',
+      '#options' => array_combine($domains, $domains),
+      '#title' => $this->t('Targeted content domain'),
+      '#description' => $this->t('For example "UltraBot3000" would be indexed as "Ultra" "Bot" "3000" in a generic domain, "CYP2D6" has to stay like it is in a scientific domain.'),
+      '#default_value' => isset($this->configuration['domain']) ? $this->configuration['domain'] : 'generic',
+    );
 
     if ($this->moduleHandler->moduleExists('search_api_autocomplete')) {
       $form['autocomplete'] = array(
@@ -617,6 +628,11 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         }
       }
     }
+
+    $info[] = [
+      'label' => $this->t('Targeted content domain'),
+      'info' => $this->getDomain(),
+    ];
 
     if ($this->moduleHandler->moduleExists('search_api_autocomplete')) {
       $autocomplete_modes = [];
@@ -2774,7 +2790,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
    * {@inheritdoc}
    */
   public function getBackendDefinedFields(IndexInterface $index) {
-    $location_distance_fields = [];
+    $backend_defined_fields = [];
 
     foreach ($index->getFields() as $field) {
       if ($field->getType() == 'location') {
@@ -2787,11 +2803,36 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         $distance_field->setDatasourceId($field->getDatasourceId());
         $distance_field->setPropertyPath($property_path_name);
 
-        $location_distance_fields[$distance_field_name] = $distance_field;
+        $backend_defined_fields[$distance_field_name] = $distance_field;
       }
     }
 
-    return $location_distance_fields;
+    foreach (SolrFieldType::getAvailableCustomCodes() as $custom_code => $prefix) {
+      $custom_field = new Field($index, $custom_code);
+      $custom_field->setLabel('Custom field ' . $custom_code);
+      $custom_field->setDataDefinition(DataDefinition::create('string'));
+      $custom_field->setType('test');
+      #$custom_field->setDatasourceId($field->getDatasourceId());
+      #$custom_field->setPropertyPath($property_path_name);
+
+      $backend_defined_fields[$custom_code] = $custom_field;
+    }
+
+    return $backend_defined_fields;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDomain() {
+    return (isset($this->configuration['domain']) && !empty($this->configuration['domain'])) ? $this->configuration['domain'] : 'generic';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isManagedSchema() {
+    return FALSE;
   }
 
 }
