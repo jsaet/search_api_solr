@@ -10,7 +10,7 @@ id: text_de_7_0_0
 label: 'German Text Field'
 managed_schema: false
 minimum_solr_version: 7.0.0
-field_type_custom_code: ''
+custom_code: ''
 field_type_language_code: de
 domains: {}
 field_type:
@@ -112,11 +112,6 @@ field_type:
           protected: protwords_de.txt
         -
           class: solr.RemoveDuplicatesTokenFilterFactory
-dynamic_field_prefixes:
-  - ts
-  - tm
-  - tos
-  - tom
 solr_configs:
   searchComponents:
     -

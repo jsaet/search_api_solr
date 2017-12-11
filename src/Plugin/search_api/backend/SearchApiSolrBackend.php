@@ -479,6 +479,16 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
    * {@inheritdoc}
    */
   public function supportsDataType($type) {
+    static $custom_codes = [];
+
+    if (strpos($type, 'solr_text_custom:') === 0) {
+      list(, $custom_code) = explode(':', $type);
+      if (empty($custom_codes)) {
+        $custom_codes = SolrFieldType::getAvailableCustomCodes();
+      }
+      return in_array($custom_code, $custom_codes);
+    }
+
     return in_array($type, [
       'location',
       'rpt',

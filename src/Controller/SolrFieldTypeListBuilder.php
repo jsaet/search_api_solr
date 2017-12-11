@@ -279,7 +279,7 @@ class SolrFieldTypeListBuilder extends ConfigEntityListBuilder {
     foreach ($solr_field_types as $solr_field_type) {
       $text_files = $solr_field_type->getTextFiles();
       foreach ($text_files as $text_file_name => $text_file) {
-        if ($custom_code = $solr_field_type->getFieldTypeCustomCode()) {
+        if ($custom_code = $solr_field_type->getCustomCode()) {
           $text_file_name .= '_' .$custom_code;
         }
         $text_file_name .= '_' . $solr_field_type->getFieldTypeLanguageCode() . '.txt';

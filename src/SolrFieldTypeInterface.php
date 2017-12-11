@@ -23,7 +23,7 @@ interface SolrFieldTypeInterface extends ConfigEntityInterface {
    * @return string
    *   Custom code.
    */
-  public function getFieldTypeCustomCode();
+  public function getCustomCode();
 
   /**
    * Gets the language targeted by this Solr Field Type.
@@ -32,14 +32,6 @@ interface SolrFieldTypeInterface extends ConfigEntityInterface {
    *   Language code.
    */
   public function getFieldTypeLanguageCode();
-
-  /**
-   * Gets the dynamic field prefixes.
-   *
-   * @return array
-   *   Dynamic field prefixes.
-   */
-  public function getDynamicFieldPrefixes();
 
   /**
    * Gets the domains the field type is suitable for.

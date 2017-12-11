@@ -80,11 +80,6 @@ field_type:
           class: solr.GreekStemFilterFactory
         -
           class: solr.RemoveDuplicatesTokenFilterFactory
-dynamic_field_prefixes:
-  - ts
-  - tm
-  - tos
-  - tom
 solr_configs: {}
 text_files:
   stopwords: |

@@ -26,8 +26,9 @@ class Utility {
   /**
    * Retrieves Solr-specific data for available data types.
    *
-   * Returns the data type information for both the default Search API data
-   * types and custom data types defined by hook_search_api_data_type_info().
+   * Returns the data type information for the default Search API datatypes, the
+   * Solr specific data types and custom data types defined by
+   * hook_search_api_data_type_info().
    * Names for default data types are not included, since they are not relevant
    * to the Solr service class.
    *

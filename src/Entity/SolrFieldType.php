@@ -80,7 +80,7 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
    *
    * @var string
    */
-  protected $field_type_custom_code;
+  protected $custom_code;
 
   /**
    * The language targeted by this Solr Field Type.
@@ -88,13 +88,6 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
    * @var string
    */
   protected $field_type_language_code;
-
-  /**
-   * The dynamic field prefixes.
-   *
-   * @var string[]
-   */
-  protected $dynamic_field_prefixes;
 
   /**
    * The targeted content domains.
@@ -127,8 +120,8 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
   /**
    * {@inheritdoc}
    */
-  public function getFieldTypeCustomCode() {
-    return $this->field_type_custom_code;
+  public function getCustomCode() {
+    return $this->custom_code;
   }
 
   /**
@@ -143,13 +136,6 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
    */
   public function getDomains() {
     return empty($this->domains) ? ['generic'] : $this->domains;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getDynamicFieldPrefixes() {
-    return $this->dynamic_field_prefixes;
   }
 
   /**
@@ -179,10 +165,10 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
     foreach ($config_factory->listAll('search_api_solr.solr_field_type.') as $field_type_name) {
       $config = $config_factory->get($field_type_name);
       if ($custom_code = $config->get('field_type_custom_code')) {
-        $custom_codes[$custom_code] = trim($config->get('dynamic_field_prefixes')[0], 'sm');
+        $custom_codes[] = $custom_code;
       }
     }
-    return $custom_codes;
+    return array_unique($custom_codes);
   }
 
   /**
@@ -330,27 +316,29 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
    */
   public function getDynamicFields() {
     $dynamic_fields = [];
-    foreach ($this->dynamic_field_prefixes as $prefix) {
-      $dynamic_fields[] = $dynamic_field = [
-        'name' => SearchApiSolrUtility::encodeSolrName(
-            Utility::getLanguageSpecificSolrDynamicFieldPrefix(
-              Utility::getCustomCodeSpecificSolrDynamicFieldPrefix($prefix, $this->field_type_custom_code),
-              $this->field_type_language_code
-            )
-        ) . '*',
-        'type' => $this->field_type['name'],
-        'stored' => TRUE,
-        'indexed' => TRUE,
-        'multiValued' => strpos($prefix, 'm') !== FALSE,
-        'termVectors' => strpos($prefix, 't') === 0,
-        'omitNorms' => strpos($prefix, 'o') === 1,
-      ];
-      if ($this->field_type_custom_code && 'und' == $this->field_type_language_code) {
-        // Add a language-unspecific default dynamic field for that custom code.
-        $dynamic_field['name'] = SearchApiSolrUtility::encodeSolrName(
-            Utility::getCustomCodeSpecificSolrDynamicFieldPrefix($prefix, $this->field_type_custom_code)
-          ) . '*';
-        $dynamic_fields[] = $dynamic_field;
+    $prefixes = $this->custom_code ?
+      [Utility::getCustomCodeSpecificSolrDynamicFieldPrefix(
+        'tc', $prefixes = $this->custom_code)] :
+      ['t', 'to'];
+    foreach ($prefixes as $prefix_without_cardinality) {
+      foreach (['s', 'm'] as $cardinality) {
+        $prefix = $prefix_without_cardinality . $cardinality;
+        $dynamic_fields[] = $dynamic_field = [
+          'name' => SearchApiSolrUtility::encodeSolrName(
+              Utility::getLanguageSpecificSolrDynamicFieldPrefix($prefix, $this->field_type_language_code)
+            ) . '*',
+          'type' => $this->field_type['name'],
+          'stored' => TRUE,
+          'indexed' => TRUE,
+          'multiValued' => strpos($prefix, 'm') === (strlen($prefix) - 1),
+          'termVectors' => strpos($prefix, 't') === 0,
+          'omitNorms' => strpos($prefix, 'o') === (strlen($prefix) - 2),
+        ];
+        if ($this->custom_code && 'und' == $this->field_type_language_code) {
+          // Add a language-unspecific default dynamic field for that custom code.
+          $dynamic_field['name'] = SearchApiSolrUtility::encodeSolrName($prefix) . '_*';
+          $dynamic_fields[] = $dynamic_field;
+        }
       }
     }
     return $dynamic_fields;

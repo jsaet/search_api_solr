@@ -10,7 +10,7 @@ id: text_uk_4_5_0
 label: 'Ukrainian Text Field'
 managed_schema: false
 minimum_solr_version: 4.5.0
-field_type_custom_code: ''
+custom_code: ''
 field_type_language_code: uk
 domains: {}
 field_type:
@@ -77,11 +77,6 @@ field_type:
           protected: protwords_uk.txt
         -
           class: solr.RemoveDuplicatesTokenFilterFactory
-dynamic_field_prefixes:
-  - ts
-  - tm
-  - tos
-  - tom
 solr_configs: {}
 text_files:
   stopwords: |
