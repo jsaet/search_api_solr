@@ -332,7 +332,7 @@ function search_api_solr_update_8200() {
  */
 function search_api_solr_update_8201() {
   foreach (search_api_solr_update_helper_get_field_type_configs() as $field_type_name => $field_type_config) {
-    If (!empty($field_type_config['solr_configs']) && !empty($field_type_config['solr_configs']['searchComponents'])) {
+    if (!empty($field_type_config['solr_configs']) && !empty($field_type_config['solr_configs']['searchComponents'])) {
       foreach($field_type_config['solr_configs']['searchComponents'] as &$component) {
         if ($component['name'] == 'suggest') {
           foreach($component['lst'] as &$lst) {
@@ -349,5 +349,38 @@ function search_api_solr_update_8201() {
         }
       }
     };
+  }
+}
+
+/**
+ * Enable support for targeted domains for all backends.
+ */
+function search_api_solr_update_8202() {
+  foreach (search_api_solr_update_helper_get_backend_configs() as $server_name => $backend_config) {
+    if (!isset($backend_config['domain'])) {
+      if (isset($backend_config['sasm_domain'])) {
+        $backend_config['domain'] = $backend_config['sasm_domain'];
+        unset($backend_config['sasm_domain']);
+      }
+      else {
+        $backend_config['domain'] = 'generic';
+      }
+    }
+    search_api_solr_update_helper_save_backend_config($server_name, $backend_config);
+  }
+}
+
+/**
+ * Introduce custom codes and fconfigurable dynamic fields for solr field types.
+ */
+function search_api_solr_update_8203() {
+  foreach (search_api_solr_update_helper_get_field_type_configs() as $field_type_name => $field_type_config) {
+    if (!isset($field_type_config['field_type_custom_code'])) {
+      $field_type_config['field_type_custom_code'] = '';
+    }
+    if (!isset($field_type_config['dynamic_field_prefixes'])) {
+      $field_type_config['dynamic_field_prefixes'] = ['ts', 'tm', 'tos', 'tom'];
+    }
+    search_api_solr_update_helper_save_field_type_config($field_type_name, $field_type_config);
   }
 }

@@ -2807,17 +2807,6 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
       }
     }
 
-    foreach (SolrFieldType::getAvailableCustomCodes() as $custom_code => $prefix) {
-      $custom_field = new Field($index, $custom_code);
-      $custom_field->setLabel('Custom field ' . $custom_code);
-      $custom_field->setDataDefinition(DataDefinition::create('string'));
-      $custom_field->setType('test');
-      #$custom_field->setDatasourceId($field->getDatasourceId());
-      #$custom_field->setPropertyPath($property_path_name);
-
-      $backend_defined_fields[$custom_code] = $custom_field;
-    }
-
     return $backend_defined_fields;
   }
 
