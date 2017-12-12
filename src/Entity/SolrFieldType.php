@@ -164,7 +164,7 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
     $config_factory = \Drupal::configFactory();
     foreach ($config_factory->listAll('search_api_solr.solr_field_type.') as $field_type_name) {
       $config = $config_factory->get($field_type_name);
-      if ($custom_code = $config->get('field_type_custom_code')) {
+      if ($custom_code = $config->get('custom_code')) {
         $custom_codes[] = $custom_code;
       }
     }
