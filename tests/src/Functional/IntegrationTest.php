@@ -2,14 +2,12 @@
 
 namespace Drupal\Tests\search_api_solr\Functional;
 
-use Drupal\Tests\search_api\Functional\IntegrationTest;
-
 /**
  * Tests the overall functionality of the Search API framework and admin UI.
  *
  * @group search_api_solr
  */
-class IntegrationTest extends IntegrationTest {
+class IntegrationTest extends \Drupal\Tests\search_api\Functional\IntegrationTest {
 
   /**
    * The backend of the search server used for this test.

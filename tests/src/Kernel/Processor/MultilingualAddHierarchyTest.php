@@ -1,8 +1,8 @@
 <?php
 
-use Drupal\Tests\search_api\Kernel\Processor\AddHierarchyTest;
-
 namespace Drupal\Tests\search_api_solr\Kernel\Processor;
+
+use Drupal\Tests\search_api\Kernel\Processor\AddHierarchyTest;
 
 /**
  * Tests the "Hierarchy" processor.

@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- */
-
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\search_api\Entity\Server;

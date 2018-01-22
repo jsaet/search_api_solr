@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- */
-
 use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Config\InstallStorage;

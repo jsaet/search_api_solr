@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- */
-
 use Drupal\search_api\Entity\Server;
 
 /**
