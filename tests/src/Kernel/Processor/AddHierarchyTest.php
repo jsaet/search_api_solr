@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\Tests\search_api_solr\Kernel\Processor;
+use Drupal\Tests\search_api\Kernel\Processor\AddHierarchyTest;
 
 /**
  * Tests the "Hierarchy" processor.
@@ -11,7 +12,7 @@ namespace Drupal\Tests\search_api_solr\Kernel\Processor;
  *
  * @coversDefaultClass \Drupal\search_api\Plugin\search_api\processor\AddHierarchy
  */
-class AddHierarchyTest extends \Drupal\Tests\search_api\Kernel\Processor\AddHierarchyTest {
+class AddHierarchyTest extends AddHierarchyTest {
 
   use SolrBackendTrait;
 

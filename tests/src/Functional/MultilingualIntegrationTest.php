@@ -2,12 +2,14 @@
 
 namespace Drupal\Tests\search_api_solr\Functional;
 
+use Drupal\Tests\search_api_solr\Functional\IntegrationTest;
+
 /**
  * Tests the overall functionality of the Search API framework and admin UI.
  *
  * @group search_api_solr
  */
-class MultilingualIntegrationTest extends \Drupal\Tests\search_api_solr\Functional\IntegrationTest {
+class MultilingualIntegrationTest extends IntegrationTest {
 
   /**
    * {@inheritdoc}

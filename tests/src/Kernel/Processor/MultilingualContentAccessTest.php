@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\search_api_solr\Kernel\Processor;
 
-use Drupal\Tests\search_api_solr\Kernel\Processor\SolrBackendTrait;
+use Drupal\Tests\search_api\Kernel\Processor\ContentAccessTest;
 
 /**
  * Tests the "Content access" processor.
@@ -11,7 +11,7 @@ use Drupal\Tests\search_api_solr\Kernel\Processor\SolrBackendTrait;
  *
  * @see \Drupal\search_api\Plugin\search_api\processor\ContentAccess
  */
-class MultilingualContentAccessTest extends \Drupal\Tests\search_api\Kernel\Processor\ContentAccessTest  {
+class MultilingualContentAccessTest extends ContentAccessTest {
 
   use SolrBackendTrait;
 
