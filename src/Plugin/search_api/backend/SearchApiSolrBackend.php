@@ -40,8 +40,8 @@ use Drupal\search_api_solr\SearchApiSolrException;
 use Drupal\search_api_solr\SolrBackendInterface;
 use Drupal\search_api_solr\SolrConnector\SolrConnectorPluginManager;
 use Drupal\search_api_solr\Utility\Utility;
-use Solarium\Component\Spellcheck;
 use Solarium\Core\Client\Response;
+use Solarium\Core\Query\Helper;
 use Solarium\Core\Query\QueryInterface as SolariumQueryInterface;
 use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\Exception\ExceptionInterface;
@@ -128,9 +128,16 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
   protected $dataTypeHelper;
 
   /**
+   * The Solarium query helper.
+   *
+   * @var Helper
+   */
+  protected $queryHelper;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, Config $search_api_solr_settings, LanguageManagerInterface $language_manager, SolrConnectorPluginManager $solr_connector_plugin_manager, FieldsHelperInterface $fields_helper, DataTypeHelperInterface $dataTypeHelper) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, Config $search_api_solr_settings, LanguageManagerInterface $language_manager, SolrConnectorPluginManager $solr_connector_plugin_manager, FieldsHelperInterface $fields_helper, DataTypeHelperInterface $dataTypeHelper, Helper $query_helper) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->moduleHandler = $module_handler;
@@ -139,6 +146,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
     $this->solrConnectorPluginManager = $solr_connector_plugin_manager;
     $this->fieldsHelper = $fields_helper;
     $this->dataTypeHelper = $dataTypeHelper;
+    $this->queryHelper = $query_helper;
   }
 
   /**
@@ -154,7 +162,8 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
       $container->get('language_manager'),
       $container->get('plugin.manager.search_api_solr.connector'),
       $container->get('search_api.fields_helper'),
-      $container->get('search_api.data_type_helper')
+      $container->get('search_api.data_type_helper'),
+      $container->get('solarium.query_helper')
     );
   }
 
@@ -1839,29 +1848,29 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
     switch ($operator) {
       case '<>':
         if (is_null($value)) {
-          return "$field:[* TO *]";
+          return $this->queryHelper->rangeQuery($field, NULL, NULL);
         }
         else {
           return "(*:* -$field:$value)";
         }
 
       case '<':
-        return "$field:{* TO $value}";
+        return $this->queryHelper->rangeQuery($field, NULL, $value, FALSE);
 
       case '<=':
-        return "$field:[* TO $value]";
+        return $this->queryHelper->rangeQuery($field, NULL, $value);
 
       case '>=':
-        return "$field:[$value TO *]";
+        return $this->queryHelper->rangeQuery($field, $value, NULL);
 
       case '>':
-        return "$field:{{$value} TO *}";
+        return $this->queryHelper->rangeQuery($field, $value, NULL, FALSE);
 
       case 'BETWEEN':
-        return "$field:[" . array_shift($value) . ' TO ' . array_shift($value) . ']';
+        return $this->queryHelper->rangeQuery($field, array_shift($value), array_shift($value));
 
       case 'NOT BETWEEN':
-        return "(*:* -$field:[" . array_shift($value) . ' TO ' . array_shift($value) . '])';
+        return '(*:* -' . $this->queryHelper->rangeQuery($field, array_shift($value), array_shift($value)) . ')';
 
       case 'IN':
         $parts = [];
@@ -1876,7 +1885,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         }
         if ($null) {
           // @see https://stackoverflow.com/questions/4238609/how-to-query-solr-for-empty-fields/28859224#28859224
-          return "(*:* -$field:[* TO *])";
+          return '(*:* -' . $this->queryHelper->rangeQuery($field, NULL, NULL) . ')';
         }
         return '(' . implode(" ", $parts) . ')';
 
@@ -1891,13 +1900,13 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
             $parts[] = "-$field:$v";
           }
         }
-        return '(' . ($null ? "$field:[* TO *]" : '*:*') . ' ' . implode(" ", $parts) . ')';
+        return '(' . ($null ? $this->queryHelper->rangeQuery($field, NULL, NULL) : '*:*') . ' ' . implode(" ", $parts) . ')';
 
       case '=':
       default:
         if (is_null($value)) {
           // @see https://stackoverflow.com/questions/4238609/how-to-query-solr-for-empty-fields/28859224#28859224
-          return "(*:* -$field:[* TO *])";
+          return '(*:* -' . $this->queryHelper->rangeQuery($field, NULL, NULL) . ')';
         }
         else {
           return "$field:$value";
