@@ -38,9 +38,6 @@ class SearchApiBackendUnitTest extends UnitTestCase {
    *   Expected result.
    */
   public function testIndexField($input, $type, $expected) {
-    $connector = $this->prophesize(SolrConnectorInterface::class);
-    $connector->getQueryHelper()->willReturn(new Helper());
-
     $field = 'testField';
     $document = $this->prophesize(Document::class);
     $document
@@ -48,7 +45,7 @@ class SearchApiBackendUnitTest extends UnitTestCase {
       ->shouldBeCalled();
 
     $backend = $this->prophesize(SearchApiSolrBackend::class);
-    $backend->getSolrConnector()->willReturn($connector->reveal());
+    $backend->queryHelper->willReturn(new Helper());
 
     $args = [
       $document->reveal(),

@@ -1329,7 +1329,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
   protected function addIndexField(Document $doc, $key, array $values, $type) {
     // Don't index empty values (i.e., when field is missing).
     if (!isset($values)) {
-      return;
+      return '';
     }
 
     if (strpos($type, 'solr_text_custom') === 0) {
@@ -1348,7 +1348,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         case 'date':
           $value = $this->formatDate($value);
           if ($value === FALSE) {
-            return;
+            continue(2);
           }
           break;
 
@@ -1848,7 +1848,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
           return $this->queryHelper->rangeQuery($field, NULL, NULL);
         }
         else {
-          return '(*:* -' . $field . ':'. $this->queryHelper->escapePhrase($value);
+          return '(*:* -' . $field . ':'. $this->queryHelper->escapePhrase($value) . ')';
         }
 
       case '<':
