@@ -41,8 +41,6 @@ before_install:
   - composer global require "hirak/prestissimo:^0.3"
   - sudo apt-get update -qq > /dev/null
   - export SOLR_CONFS="$TRAVIS_BUILD_DIR/../drupal/modules/contrib/search_api_solr/solr-conf/$SEARCH_API_SOLR_CONF"
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
 
 install:
   - git tag 999.0.0
