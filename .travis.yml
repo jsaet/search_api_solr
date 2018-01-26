@@ -81,16 +81,16 @@ before_script:
   - ./vendor/bin/drush en --yes search_api_solr_multilingual_test
   - ./vendor/bin/drush solr-gsc solr_multilingual_search_server conf.zip $SOLR_VERSION
   - rm -rf core/modules/system/entity_test modules/contrib/search_api/search_api_test_example_content modules/contrib/search_api_solr/search_api_solr_multilingual_test
-  - mkdir solr-${SOLR_VERSION}/server/solr/d8
-  - mkdir solr-${SOLR_VERSION}/server/solr/d8/conf
-  - unzip -o conf.zip -d solr-${SOLR_VERSION}/server/solr/d8/conf
-  - echo "name=d8" > solr-${SOLR_VERSION}/server/solr/d8/core.properties
-  - ls -lh solr-${SOLR_VERSION}/server/solr/d8/conf
-  - solr-${SOLR_VERSION}/bin/solr start -p 8983
-  - solr-${SOLR_VERSION}/bin/solr start -e techproducts -p 8993
+  - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8
+  - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/conf
+  - unzip -o conf.zip -d $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/conf
+  - echo "name=d8" > $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/core.properties
+  - ls -lh $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/conf
+  - $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/bin/solr start -p 8983
+  - $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/bin/solr start -e techproducts -p 8993
 
 script:
-  # Run the tests
+  # Run the tests within the drupal directory.
   - cd $TRAVIS_BUILD_DIR/../drupal
   - ./vendor/bin/phpunit -c core --group search_api_solr --verbose --debug
 
