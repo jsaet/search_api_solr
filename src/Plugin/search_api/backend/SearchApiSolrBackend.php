@@ -899,11 +899,10 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
     // Since the index ID we use for indexing can contain arbitrary
     // prefixes, we have to escape it for use in the query.
     $connector = $this->getSolrConnector();
-    $query_helper = $connector->getQueryHelper();
-    $query = '+index_id:' . $this->getIndexId($query_helper->escapePhrase($index->id()));
-    $query .= ' +hash:' . $query_helper->escapePhrase(Utility::getSiteHash());
+    $query = '+index_id:' . $this->getIndexId($this->queryHelper->escapePhrase($index->id()));
+    $query .= ' +hash:' . $this->queryHelper->escapePhrase(Utility::getSiteHash());
     if ($datasource_id) {
-      $query .= ' +' . $this->getSolrFieldNames($index)['search_api_datasource'] . ':' . $query_helper->escapePhrase($datasource_id);
+      $query .= ' +' . $this->getSolrFieldNames($index)['search_api_datasource'] . ':' . $this->queryHelper->escapePhrase($datasource_id);
     }
     $update_query = $connector->getUpdateQuery();
     $update_query->addDeleteQuery($query);
@@ -985,13 +984,12 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         ->addTags($filter_query['tags']);
     }
 
-    $query_helper = $connector->getQueryHelper($solarium_query);
     // Set the Index filter.
-    $solarium_query->createFilterQuery('index_id')->setQuery('index_id:' . $query_helper->escapePhrase($index_id));
+    $solarium_query->createFilterQuery('index_id')->setQuery('index_id:' . $this->queryHelper->escapePhrase($index_id));
 
     // Set the site hash filter, if enabled.
     if ($this->configuration['site_hash']) {
-      $site_hash = $query_helper->escapePhrase(Utility::getSiteHash());
+      $site_hash = $this->queryHelper->escapePhrase(Utility::getSiteHash());
       $solarium_query->createFilterQuery('site_hash')->setQuery('hash:' . $site_hash);
     }
 
@@ -1807,7 +1805,6 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
 
     foreach ($value as &$v) {
       if (!is_null($v) || !in_array($operator, ['=', '<>', 'IN', 'NOT IN'])) {
-        $v = trim($v);
         $v = $this->formatFilterValue($v, $index_field->getType());
         // Remaining NULL values are now converted to empty strings.
       }
@@ -1851,7 +1848,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
           return $this->queryHelper->rangeQuery($field, NULL, NULL);
         }
         else {
-          return "(*:* -$field:$value)";
+          return '(*:* -' . $field . ':'. $this->queryHelper->escapePhrase($value);
         }
 
       case '<':
@@ -1880,7 +1877,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
             $null = TRUE;
           }
           else {
-            $parts[] = "$field:$v";
+            $parts[] = $field . ':' . $this->queryHelper->escapePhrase($v);
           }
         }
         if ($null) {
@@ -1897,7 +1894,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
             $null = TRUE;
           }
           else {
-            $parts[] = "-$field:$v";
+            $parts[] = '-' . $field . ':' . $this->queryHelper->escapePhrase($v);
           }
         }
         return '(' . ($null ? $this->queryHelper->rangeQuery($field, NULL, NULL) : '*:*') . ' ' . implode(" ", $parts) . ')';
@@ -1909,7 +1906,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
           return '(*:* -' . $this->queryHelper->rangeQuery($field, NULL, NULL) . ')';
         }
         else {
-          return "$field:$value";
+          return $field . ':' . $this->queryHelper->escapePhrase($value);
         }
     }
   }
@@ -1951,6 +1948,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
    * Format a value for filtering on a field of a specific type.
    */
   protected function formatFilterValue($value, $type) {
+    $value = trim($value);
     switch ($type) {
       case 'boolean':
         $value = $value ? 'true' : 'false';
@@ -1967,7 +1965,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         // Do not escape.
         return (float) $value;
     }
-    return $this->getSolrConnector()->getQueryHelper()->escapePhrase($value);
+    return is_null($value) ? '' : $value;
   }
 
   /**
@@ -1979,7 +1977,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
    */
   protected function formatDate($input) {
     $input = is_numeric($input) ? (int) $input : new \DateTime($input, timezone_open(DATETIME_STORAGE_TIMEZONE));
-    return $this->getSolrConnector()->getQueryHelper()->formatDate($input);
+    return $this->queryHelper->formatDate($input);
   }
 
   /**
@@ -2387,7 +2385,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         }
       }
       else {
-        $k[] = $this->getSolrConnector()->getQueryHelper()->escapePhrase(trim($key));
+        $k[] = $this->queryHelper->escapePhrase(trim($key));
       }
     }
     if (!$k) {
@@ -2501,7 +2499,6 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
   protected function getMoreLikeThisQuery(QueryInterface $query, $index_id, $index_fields = [], $fields = []) {
     $connector = $this->getSolrConnector();
     $solarium_query = $connector->getMoreLikeThisQuery();
-    $query_helper = $connector->getQueryHelper($solarium_query);
     $mlt_options = $query->getOption('search_api_mlt');
     $language_ids = $query->getLanguages();
     if (empty($language_ids)) {
@@ -2552,9 +2549,9 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
     }
 
     if (!empty($ids)) {
-      array_walk($ids, function (&$id, $key) use ($index_id, $query_helper) {
+      array_walk($ids, function (&$id, $key) use ($index_id) {
         $id = $this->createId($index_id, $id);
-        $id = $query_helper->escapePhrase($id);
+        $id = $this->queryHelper->escapePhrase($id);
       });
 
       $solarium_query->setQuery('id:' . implode(' id:', $ids));
