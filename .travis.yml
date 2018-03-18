@@ -85,9 +85,9 @@ before_script:
   - rm -rf core/modules/system/entity_test modules/contrib/search_api/search_api_test_example_content modules/contrib/search_api_solr/search_api_solr_multilingual_test
   - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8
   - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/conf
-  - unzip -o conf.zip -d $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/conf
-  - echo "name=d8" > $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/core.properties
-  - ls -lh $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/conf
+  - unzip -o conf.zip -d $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/conf
+  - echo "name=d8" > $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/core.properties
+  - ls -lh $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/conf
   - $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/bin/solr start -e techproducts -p 8983
 
 script:
