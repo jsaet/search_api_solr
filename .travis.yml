@@ -83,8 +83,8 @@ before_script:
   - ./vendor/bin/drush en --yes search_api_solr_multilingual_test
   - ./vendor/bin/drush solr-gsc solr_multilingual_search_server conf.zip $SOLR_VERSION
   - rm -rf core/modules/system/entity_test modules/contrib/search_api/search_api_test_example_content modules/contrib/search_api_solr/search_api_solr_multilingual_test
-  - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8
-  - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/server/solr/d8/conf
+  - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8
+  - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/conf
   - unzip -o conf.zip -d $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/conf
   - echo "name=d8" > $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/core.properties
   - ls -lh $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/conf
