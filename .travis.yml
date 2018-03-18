@@ -88,7 +88,6 @@ before_script:
   - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8
   - mkdir $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/conf
   - unzip -o conf.zip -d $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/conf
-  - echo "name=d8" > $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/core.properties
   - ls -lh $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/example/techproducts/solr/d8/conf
   # Add the preconfigured d8 core to the running techproducts example.
   - $TRAVIS_BUILD_DIR/solr-${SOLR_VERSION}/bin/solr create -c d8
