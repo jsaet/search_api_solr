@@ -203,6 +203,9 @@
   <!-- Trie fields are deprecated. Point fields solve all needs. But we keep the dedicated field names for backward compatibility. -->
   <dynamicField name="ds_*"  type="pdate"   indexed="true"  stored="true" multiValued="false"/>
   <dynamicField name="dm_*"  type="pdate"   indexed="true"  stored="true" multiValued="true"/>
+  <!-- This field is used to store date ranges -->
+  <dynamicField name="drs_*" type="date_range" indexed="true" stored="true" multiValued="false" />
+  <dynamicField name="drm_*" type="date_range" indexed="true" stored="true" multiValued="true" />
   <dynamicField name="its_*" type="plong"   indexed="true"  stored="true" multiValued="false"/>
   <dynamicField name="itm_*" type="plong"   indexed="true"  stored="true" multiValued="true"/>
   <dynamicField name="fts_*" type="pfloat"  indexed="true"  stored="true" multiValued="false"/>
@@ -340,6 +343,9 @@
     <!-- KD-tree versions of date fields -->
     <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
     <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
+
+    <!-- A date range field -->
+    <fieldType name="date_range" class="solr.DateRangeField"/>
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
     <fieldType name="binary" class="solr.BinaryField"/>
