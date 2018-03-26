@@ -3,7 +3,6 @@
 namespace Drupal\search_api_solr\Plugin\search_api\data_type;
 
 use Drupal\search_api\Plugin\search_api\data_type\DateDataType;
-use Drupal\search_api_solr\Plugin\search_api\data_type\value\DateRangeValue;
 
 /**
  * Provides a date range data type.
@@ -17,12 +16,4 @@ use Drupal\search_api_solr\Plugin\search_api\data_type\value\DateRangeValue;
  * )
  */
 class DateRangeDataType extends DateDataType {
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getValue($value) {
-    return new DateRangeValue((string) $value);
-  }
-
 }

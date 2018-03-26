@@ -7,7 +7,6 @@ namespace Drupal\search_api_solr\Plugin\search_api\data_type\value;
  */
 interface DateRangeValueInterface {
 
-  const DELIMITER = '_TO_';
   /**
    * Retrieves the start date.
    *
