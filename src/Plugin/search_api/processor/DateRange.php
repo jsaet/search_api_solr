@@ -29,13 +29,14 @@ class DateRange extends ProcessorPluginBase {
       /** @var \Drupal\search_api\Item\FieldInterface $field */
       foreach ($item->getFields() as $name => $field) {
         if ('solr_date_range' == $field->getType()) {
-          /** @var \Drupal\Core\Entity\Plugin\DataType\EntityAdapter $entity_adapter */
-          $entity_adapter = $item->getOriginalObject();
-          /** @var \Drupal\Core\Entity\ContentEntityInterface $original_entity */
-          $original_entity = $entity_adapter->getValue();
-          $values = [];
-          foreach ($original_entity->{$name}->getValue() as $key => $dates) {
-            $values[$key] = new DateRangeValue($dates['value'], $dates['end_value']);
+          $required_properties = [
+            $item->getDatasourceId() => [
+              $field->getPropertyPath() . ':value' => 'start',
+              $field->getPropertyPath() . ':end_value' => 'end',
+            ],
+          ];
+          foreach ($this->getFieldsHelper()->extractItemValues([$item], $required_properties) as $key => $dates) {
+            $values[$key] = new DateRangeValue($dates['start'][0], $dates['end'][0]);
           }
           $field->setValues($values);
         }
