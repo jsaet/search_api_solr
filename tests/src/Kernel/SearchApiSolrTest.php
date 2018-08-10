@@ -767,4 +767,28 @@ class SearchApiSolrTest extends SolrBackendTestBase {
     $this->assertResults([1], $results, 'Ngram string "Dog".');
   }
 
+  /**
+   * Tests search result groping
+   */
+  public function testSearchResultGrouping() {
+    $this->insertExampleContent();
+    $this->indexItems($this->indexId);
+
+    $query = $this->buildSearch(NULL, [], [], FALSE);
+    $query->setOption('search_api_grouping', [
+      'use_grouping' => TRUE,
+      'fields' => [
+        'type',
+      ],
+    ]);
+    $results = $query->execute();
+
+    $this->assertEquals(2, $results->getResultCount(), 'Get the results count grouping by type.');
+    $data = $results->getExtraData('search_api_solr_response');
+    $this->assertEquals(5, $data['grouped']['ss_type']['matches'], 'Get the total documents after grouping.');
+    $this->assertEquals(2, $data['grouped']['ss_type']['ngroups'], 'Get the number of groups after grouping.');
+    $this->assertResults([1, 4], $results, 'Grouping by type');
+  }
+
+
 }

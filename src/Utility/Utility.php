@@ -3,6 +3,7 @@
 namespace Drupal\search_api_solr\Utility;
 
 use Drupal\Component\Utility\NestedArray;
+use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\ServerInterface;
 
 /**
@@ -295,7 +296,7 @@ class Utility {
    * @param string $field_name
    *   The field name.
    * @param string $language_id
-   *   The Drupal langauge code.
+   *   The Drupal language code.
    *
    * @return string
    *   The language-specific name.
@@ -320,7 +321,7 @@ class Utility {
    * @param string $field_name
    *   The field name.
    * @param string $language_id
-   *   The Drupal langauge code.
+   *   The Drupal language code.
    *
    * @return string
    *   The language-specific name.
@@ -420,4 +421,69 @@ class Utility {
     return implode(' ', $cfg);
   }
 
+  /**
+   * Extracts the cardinality from a dynamic Solr field.
+   *
+   * @param string $field_name
+   *   The dynamic Solr field name.
+   *
+   * @return string
+   *   The cardinality as string 's' or 'm'.
+   */
+  public static function getSolrFieldCardinality(string $field_name) {
+    $parts = explode('_', $field_name);
+    return substr($parts[0], -1, 1);
+  }
+
+  /**
+   * Gets the sortable equivalent of a dynamic Solr field.
+   *
+   * @param string $field_name
+   *   The Search API field name.
+   *
+   * @param string $solr_field_name
+   *   The dynamic Solr field name.
+   *
+   * @param QueryInterface $query
+   *    The Search API query.
+   *
+   * @return string
+   *   The sortable Solr field name.
+   */
+  public static function getSortableSolrField(string $field_name, string $solr_field_name, QueryInterface $query) {
+    // First wee need to handle special fields which are prefixed by
+    // 'search_api_'. Otherwise they will erroneously be treated as dynamic
+    // string fields by the next detection below because they start with an
+    // 's'. This way we for example ensure that search_api_relevance isn't
+    // modified at all.
+    if (strpos($field_name, 'search_api_') === 0) {
+      if ('search_api_random' == $field_name) {
+        // The default Solr schema provides a virtual field named "random_*"
+        // that can be used to randomly sort the results; the field is
+        // available only at query-time. See schema.xml for more details about
+        // how the "seed" works.
+        $params = $query->getOption('search_api_random_sort', []);
+        // Random seed: getting the value from parameters or computing a new
+        // one.
+        $seed = !empty($params['seed']) ? $params['seed'] : mt_rand();
+        return $solr_field_name . '_' . $seed;
+      }
+    }
+    else {
+      if (strpos($solr_field_name, 't') === 0 || strpos($solr_field_name, 's') === 0) {
+        // For fulltext fields use the dedicated sort field for faster alpha
+        // sorts. Use the same field for strings to sort on a normalized
+        // value.
+        return 'sort_' . Utility::encodeSolrName($field_name);
+      }
+      elseif (preg_match('/^([a-z]+)m(_.*)/', $solr_field_name, $matches)) {
+        // For other multi-valued fields (which aren't sortable by nature) we
+        // use the same hackish workaround like the DB backend: just copy the
+        // first value in a single value field for sorting.
+        return $matches[1] . 's' . $matches[2];
+      }
+    }
+
+    return $solr_field_name;
+  }
 }
