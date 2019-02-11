@@ -869,7 +869,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
             (strpos($field_names[$name], 't') === 0 && strpos($field_names[$name], 'twm_suggest') !== 0) ||
             (strpos($field_names[$name], 's') === 0 && strpos($field_names[$name], 'spellcheck') !== 0)
           ) {
-            $key = 'sort_' . Utility::encodeSolrName($name);
+            $key = Utility::encodeSolrName('sort' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $language_id . '_' . $name);
             if (!$doc->{$key}) {
               // Truncate the string to avoid Solr string field limitation.
               // @see https://www.drupal.org/node/2809429
@@ -3767,7 +3767,9 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
   protected function setSorts(Query $solarium_query, QueryInterface $query) {
     $field_names = $this->getSolrFieldNamesKeyedByLanguage($query->getLanguages(), $query->getIndex());
     foreach ($query->getSorts() as $field => $order) {
-      $solarium_query->addSort(Utility::getSortableSolrField($field, $field_names, $query), strtolower($order));
+      foreach (Utility::getSortableSolrField($field, $field_names, $query) as $sort_field) {
+        $solarium_query->addSort($sort_field, strtolower($order));
+      }
     }
   }
 
@@ -3812,7 +3814,9 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         if (!empty($grouping_options['group_sort'])) {
           $sorts = [];
           foreach ($grouping_options['group_sort'] as $group_sort_field => $order) {
-            $sorts[] = Utility::getSortableSolrField($group_sort_field, $field_names, $query) . ' ' . strtolower($order);
+            foreach (Utility::getSortableSolrField($group_sort_field, $field_names, $query) as $sort_field) {
+              $sorts[] = $sort_field . ' ' . strtolower($order);
+            }
           }
 
           $grouping_component->setSort(implode(', ', $sorts));

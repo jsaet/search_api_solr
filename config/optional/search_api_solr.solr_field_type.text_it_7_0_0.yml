@@ -84,6 +84,7 @@ field_type:
           protected: protwords_it.txt
         -
           class: solr.RemoveDuplicatesTokenFilterFactory
+
 spellcheck_field_type:
   name: text_spell_it
   class: solr.TextField
@@ -106,6 +107,15 @@ spellcheck_field_type:
         words: stopwords_it.txt
       -
         class: solr.RemoveDuplicatesTokenFilterFactory
+
+
+collated_field_type:
+  name: collated_it
+  class: solr.ICUCollationField
+  locale: it
+  strength: primary
+  caseLevel: false
+
 solr_configs:
   searchComponents:
     -

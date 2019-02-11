@@ -6,8 +6,10 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\ServerInterface;
 use Drupal\search_api_solr\SearchApiSolrException;
+use Drupal\search_api_solr\SolrBackendInterface;
 use Drupal\search_api_solr\SolrFieldTypeInterface;
 use Solarium\Core\Client\Request;
+use Drupal\search_api\SortByLanguageInterface;
 
 /**
  * Provides various helper functions for Solr backends.
@@ -290,8 +292,6 @@ class Utility {
   }
 
   /**
-<<<<<<< Updated upstream
-=======
    * Maps a Solr field name to its language-specific equivalent.
    *
    * For example the dynamic field tm_* will become tm;en* for English.
@@ -507,13 +507,13 @@ class Utility {
    * @param QueryInterface $query
    *    The Search API query.
    *
-   * @return string
+   * @return array
    *   The sortable Solr field name.
    *
    * @throws \Drupal\search_api_solr\SearchApiSolrException
    */
   public static function getSortableSolrField(string $field_name, array $solr_field_names, QueryInterface $query) {
-    // @todo languages
+    $sort_fields = [];
     $first_solr_field_name = reset($solr_field_names[$field_name]);
     // First we need to handle special fields which are prefixed by
     // 'search_api_'. Otherwise they will erroneously be treated as dynamic
@@ -530,32 +530,33 @@ class Utility {
         // Random seed: getting the value from parameters or computing a new
         // one.
         $seed = !empty($params['seed']) ? $params['seed'] : mt_rand();
-        return $first_solr_field_name . '_' . $seed;
+        return [$first_solr_field_name . '_' . $seed];
       }
     }
     elseif (strpos($first_solr_field_name, 'spellcheck') === 0 || strpos($first_solr_field_name, 'twm_suggest') === 0) {
       throw new SearchApiSolrException('You can\'t sort by spellcheck or suggester catalogs.');
     }
-    elseif (strpos($first_solr_field_name, 's') === 0) {
-      // For strings use the dedicated sort field for faster sort on a
-      // normalized value.
-      return 'sort_' . Utility::encodeSolrName($field_name);
-    }
-    elseif (strpos($first_solr_field_name, 't') === 0) {
-      // For fulltext fields use the dedicated sort field for faster and
-      // language specific sorts.
-      // @todo languages.
-      return 'sort_' . Utility::encodeSolrName($field_name);
+    elseif (strpos($first_solr_field_name, 's') === 0 || strpos($first_solr_field_name, 't') === 0) {
+      // @todo skip special fields.
+      // For string and fulltext fields use the dedicated sort field for faster
+      // and language specific sorts.
+      foreach ($query->getLanguages() as $language_id) {
+        $sort_fields[] = Utility::encodeSolrName('sort' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $language_id . '_' . $field_name);
+      }
     }
     elseif (preg_match('/^([a-z]+)m(_.*)/', $first_solr_field_name, $matches)) {
       // For other multi-valued fields (which aren't sortable by nature) we
       // use the same hackish workaround like the DB backend: just copy the
       // first value in a single value field for sorting.
-      return $matches[1] . 's' . $matches[2];
+      $sort_fields[] = $matches[1] . 's' . $matches[2];
     }
 
-    // We could not simply put this into an else condition because that would
-    // miss fields like search_api_relevance.
-    return $first_solr_field_name;
+    if (!$sort_fields) {
+      // We could not simply put this into an else condition because that would
+      // miss fields like search_api_relevance.
+      $sort_fields[] = $first_solr_field_name;
+    }
+
+    return $sort_fields;
   }
 }
