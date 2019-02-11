@@ -129,7 +129,6 @@ class StreamingExpressionBuilder extends Expression {
           $this->sort_fields_mapped[$language_id]['sort_' . $search_api_field] = Utility::encodeSolrName('sort' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $language_id . '_' . $search_api_field);
         }
         elseif (preg_match('/^([a-z]+)m(_.*)/', $solr_field, $matches) && strpos($solr_field, 'random_') !== 0) {
-          // @todo verify this line
           $this->sort_fields_mapped[$language_id]['sort' . Utility::decodeSolrName($matches[2])] = $matches[1] . 's' . $matches[2];
         }
 

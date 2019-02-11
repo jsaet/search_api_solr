@@ -147,8 +147,6 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
     return $this->collated_field_type;
   }
 
-
-
   /**
    * {@inheritdoc}
    */
@@ -504,7 +502,11 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
 
     if ($this->spellcheck_field_type) {
       $spellcheck_field = [
-        'name' => SearchApiSolrUtility::encodeSolrName('spellcheck' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $this->field_type_language_code) . '_*',
+        // Don't use the language separator here! This field name is used
+        // without in in the solrconfig.xml. Due to the fact that we leverage a
+        // dynamic field here to enable the language fallback we need to append
+        // '*', but not '_*' because we'll never append a field name!
+        'name' => 'spellcheck_' . $this->field_type_language_code . '*',
         'type' => $this->spellcheck_field_type['name'],
         'stored' => TRUE,
         'indexed' => TRUE,

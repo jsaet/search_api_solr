@@ -1647,7 +1647,9 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
 
             if ('solr_text_spellcheck' == $type) {
               // Any field of this type will be indexed in the same Solr field.
-              $field_mapping[$search_api_name] = Utility::encodeSolrName('spellcheck' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $language_id);
+              // Don't use the language separator here! This field name is used
+              // without in in the solrconfig.xml.
+              $field_mapping[$search_api_name] = 'spellcheck_' . $language_id;
               break;
             }
 
