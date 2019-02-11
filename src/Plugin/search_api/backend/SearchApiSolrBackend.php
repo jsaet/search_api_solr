@@ -869,23 +869,28 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
             (strpos($field_names[$name], 't') === 0 && strpos($field_names[$name], 'twm_suggest') !== 0) ||
             (strpos($field_names[$name], 's') === 0 && strpos($field_names[$name], 'spellcheck') !== 0)
           ) {
-            $key = Utility::encodeSolrName('sort' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $language_id . '_' . $name);
-            if (!$doc->{$key}) {
-              // Truncate the string to avoid Solr string field limitation.
-              // @see https://www.drupal.org/node/2809429
-              // @see https://www.drupal.org/node/2852606
-              // 128 characters should be enough for sorting and it makes no
-              // sense to heavily increase the index size. The DB backend limits
-              // the sort strings to 32 characters. But for example a
-              // search_api_id quickly exceeds 32 characters and the interesting
-              // ID is at the end of the string:
-              // 'entity:entity_test_mulrev_changed/2:en'
-              if (mb_strlen($first_value) > 128) {
-                $first_value = Unicode::truncate($first_value, 128);
+            // Truncate the string to avoid Solr string field limitation.
+            // @see https://www.drupal.org/node/2809429
+            // @see https://www.drupal.org/node/2852606
+            // 128 characters should be enough for sorting and it makes no
+            // sense to heavily increase the index size. The DB backend limits
+            // the sort strings to 32 characters. But for example a
+            // search_api_id quickly exceeds 32 characters and the interesting
+            // ID is at the end of the string:
+            // 'entity:entity_test_mulrev_changed/2:en'
+            if (mb_strlen($first_value) > 128) {
+              $first_value = Unicode::truncate($first_value, 128);
+            }
+
+            // Always copy fulltext and string fields to a dedicated sort fields
+            // for faster sorts and language specific collations. To allow
+            // sorted multilingual searches we need to fill *all*
+            // language-specific sort fields!
+            foreach (array_keys(\Drupal::languageManager()->getLanguages()) as $spell_language_id) {
+              $key = Utility::encodeSolrName('sort' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $spell_language_id . '_' . $name);
+              if (!$doc->{$key}) {
+                  $doc->addField($key, $first_value);
               }
-              // Always copy fulltext fields to a dedicated field for faster
-              // alpha sorts. Copy strings as well to normalize them.
-              $doc->addField($key, $first_value);
             }
           }
           elseif (preg_match('/^([a-z]+)m(_.*)/', $field_names[$name], $matches) && strpos($field_names[$name], 'random_') !== 0) {
@@ -1642,7 +1647,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
 
             if ('solr_text_spellcheck' == $type) {
               // Any field of this type will be indexed in the same Solr field.
-              $field_mapping[$search_api_name] = 'spellcheck_' . Utility::encodeSolrName($language_id);
+              $field_mapping[$search_api_name] = Utility::encodeSolrName('spellcheck' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $language_id);
               break;
             }
 
@@ -3767,9 +3772,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
   protected function setSorts(Query $solarium_query, QueryInterface $query) {
     $field_names = $this->getSolrFieldNamesKeyedByLanguage($query->getLanguages(), $query->getIndex());
     foreach ($query->getSorts() as $field => $order) {
-      foreach (Utility::getSortableSolrField($field, $field_names, $query) as $sort_field) {
-        $solarium_query->addSort($sort_field, strtolower($order));
-      }
+      $solarium_query->addSort(Utility::getSortableSolrField($field, $field_names, $query), strtolower($order));
     }
   }
 
@@ -3814,9 +3817,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         if (!empty($grouping_options['group_sort'])) {
           $sorts = [];
           foreach ($grouping_options['group_sort'] as $group_sort_field => $order) {
-            foreach (Utility::getSortableSolrField($group_sort_field, $field_names, $query) as $sort_field) {
-              $sorts[] = $sort_field . ' ' . strtolower($order);
-            }
+            $sorts[] = Utility::getSortableSolrField($group_sort_field, $field_names, $query) . ' ' . strtolower($order);
           }
 
           $grouping_component->setSort(implode(', ', $sorts));
@@ -3894,7 +3895,7 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
     $fulltext_fields = parent::getQueryFulltextFields($query);
     $solr_field_names = $this->getSolrFieldNames($query->getIndex());
     return array_filter($fulltext_fields, function ($value) use ($solr_field_names) {
-      return 'twm_suggest' != $solr_field_names[$value] & strpos($solr_field_names[$value], 'spellcheck_') !== 0;
+      return 'twm_suggest' != $solr_field_names[$value] & strpos($solr_field_names[$value], 'spellcheck') !== 0;
     });
   }
 

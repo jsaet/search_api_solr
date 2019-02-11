@@ -471,19 +471,18 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
         // Add a language-unspecific default dynamic spellcheck field as
         // fallback for languages we don't have a dedicated config for.
         $spellcheck_field['name'] = 'spellcheck_*';
-        $static_fields[] = $spellcheck_field;
+        $dynamic_fields[] = $spellcheck_field;
       }
     }
 
     if ($collated_field = $this->getCollatedField()) {
-
       $dynamic_fields[] = $collated_field;
 
       if (LanguageInterface::LANGCODE_NOT_SPECIFIED == $this->field_type_language_code) {
-        // Add a language-unspecific default dynamic spellcheck field as
-        // fallback for languages we don't have a dedicated config for.
+        // Add a language-unspecific default dynamic sort field as fallback for
+        // languages we don't have a dedicated config for.
         $collated_field['name'] = 'sort_*';
-        $static_fields[] = $collated_field;
+        $dynamic_fields[] = $collated_field;
       }
     }
 
@@ -505,7 +504,7 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
 
     if ($this->spellcheck_field_type) {
       $spellcheck_field = [
-        'name' => 'spellcheck_' . SearchApiSolrUtility::encodeSolrName($this->field_type_language_code) . '*',
+        'name' => SearchApiSolrUtility::encodeSolrName('spellcheck' . SolrBackendInterface::SEARCH_API_SOLR_LANGUAGE_SEPARATOR . $this->field_type_language_code) . '_*',
         'type' => $this->spellcheck_field_type['name'],
         'stored' => TRUE,
         'indexed' => TRUE,
@@ -531,7 +530,6 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
         'stored' => FALSE,
         'indexed' => FALSE,
         'docValues'=> TRUE,
-
       ];
     }
 
