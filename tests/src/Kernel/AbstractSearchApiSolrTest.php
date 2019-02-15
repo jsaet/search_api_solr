@@ -1232,6 +1232,12 @@ abstract class AbstractSearchApiSolrTest extends SolrBackendTestBase {
             #'fieldType name="text_phonetic_en" class="solr.TextField"',
             'fieldType name="text_en" class="solr.TextField"',
 '<!--
+  Language Undefined Text Field collated
+  7.0.0
+-->
+<fieldType name="collated_und" class="solr.ICUCollationField" locale="en" strength="primary" caseLevel="false"/>
+',
+'<!--
   Fulltext Foo English
   6.0.0
 -->
@@ -1266,6 +1272,10 @@ abstract class AbstractSearchApiSolrTest extends SolrBackendTestBase {
             '<dynamicField name="tm_X3b_en_*" type="text_en" stored="true" indexed="true" multiValued="true" termVectors="true" omitNorms="false" />',
             '<dynamicField name="tos_X3b_en_*" type="text_en" stored="true" indexed="true" multiValued="false" termVectors="true" omitNorms="true" />',
             '<dynamicField name="tom_X3b_en_*" type="text_en" stored="true" indexed="true" multiValued="true" termVectors="true" omitNorms="true" />',
+            '<dynamicField name="spellcheck_und*" type="text_spell_und" stored="true" indexed="true" multiValued="true" termVectors="true" omitNorms="true" />',
+            '<dynamicField name="spellcheck_*" type="text_spell_und" stored="true" indexed="true" multiValued="true" termVectors="true" omitNorms="true" />',
+            '<dynamicField name="sort_X3b_und_*" type="collated_und" stored="false" indexed="false" docValues="true" />',
+            '<dynamicField name="sort_*" type="collated_und" stored="false" indexed="false" docValues="true" />',
           ],
           'solrconfig_extra.xml' => [
             '<str name="name">en</str>',

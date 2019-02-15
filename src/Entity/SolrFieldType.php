@@ -503,7 +503,7 @@ class SolrFieldType extends ConfigEntityBase implements SolrFieldTypeInterface {
     if ($this->spellcheck_field_type) {
       $spellcheck_field = [
         // Don't use the language separator here! This field name is used
-        // without in in the solrconfig.xml. Due to the fact that we leverage a
+        // without it in the solrconfig.xml. Due to the fact that we leverage a
         // dynamic field here to enable the language fallback we need to append
         // '*', but not '_*' because we'll never append a field name!
         'name' => 'spellcheck_' . $this->field_type_language_code . '*',

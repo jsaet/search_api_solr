@@ -107,7 +107,6 @@ collated_field_type:
   locale: el
   strength: primary
   caseLevel: false
-
 solr_configs:
   searchComponents:
     -
