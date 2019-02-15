@@ -63,7 +63,7 @@ spellcheck_field_type:
 collated_field_type:
   name: collated_zh-hans
   class: solr.ICUCollationField
-  locale: zh-hans
+  locale: zh
   strength: primary
   caseLevel: false
 solr_configs:
