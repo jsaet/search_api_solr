@@ -1064,7 +1064,7 @@ abstract class AbstractSearchApiSolrTest extends SolrBackendTestBase {
     $this->assertEquals(2, $results->getResultCount(), 'Two results for "Gen" in German entities. No results for "Gen" in English entities.');
     $params = $connector->getRequestParams();
     $this->assertEquals('ss_search_api_language:("en" "de")', $params['fq'][1]);
-    $this->assertEquals('sort_X3b_en_name asc', $params['sort'][0]);
+    $this->assertEquals('ss_search_api_id asc,sort_X3b_en_name asc', $params['sort'][0]);
 
     $query = $this->buildSearch('Gene');
     $query->setLanguages(['en', 'de']);
