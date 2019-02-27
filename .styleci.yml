@@ -1,2 +1,10 @@
 preset: psr2
 
+finder:
+  path:
+    - "src"
+    - "tests"
+
+enabled:
+  - short_array_syntax
+  - single_line_class_definition
