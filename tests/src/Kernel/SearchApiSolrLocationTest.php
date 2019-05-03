@@ -385,6 +385,11 @@ class SearchApiSolrLocationTest extends SolrBackendTestBase {
       ->addCondition('location', ['-75,38', '-70,42'], 'BETWEEN');
     $result = $query->execute();
     $this->assertResults([2], $result, 'Search for NYC by boundary and NYC only');
+
+    $query = $this->buildSearch(NULL, [], NULL, FALSE)
+      ->addCondition('location', ['-75,38', '-70,42'], 'NOT BETWEEN');
+    $result = $query->execute();
+    $this->assertResults([1, 3], $result, 'Search for outside NYC by boundary');
   }
 
 }
