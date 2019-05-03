@@ -2833,7 +2833,18 @@ class SearchApiSolrBackend extends BackendPluginBase implements SolrBackendInter
         break;
 
       case 'location':
-        // Do not escape.
+        // Handle point values as a comma separated float pair of a latitude and
+        // a longitude value.
+        if (strpos($value, ',') !== FALSE) {
+          $parts = explode(',', $value);
+          if (count($parts) !== 2) {
+            // This should never be reached, but cast value just to be safe.
+            return (float) $value;
+          }
+          return (float) $parts[0] . ',' . (float) $parts[1];
+        }
+
+        // Do not escape otherwise.
         return (float) $value;
     }
     return is_null($value) ? '' : $value;
